@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Sensor Data</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            text-align: center;
+            width: 100%;
+        }
+
+        h1 {
+            color: #007BFF;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .data-item {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        .data-label {
+            font-weight: bold;
+        }
+
+        .last-updated {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        /* Loader animation */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 5px solid #3498db;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>ESP32 Sensor Data</h1>
+        <div id="sensorData">
+            <div class="loader"></div>
+            <p>Loading sensor data...</p>
+        </div>
+    </div>
+
+    <script>
+        const sensorDataDiv = document.getElementById('sensorData');
+
+        // Function to fetch sensor data from the server
+        function fetchSensorData() {
+            fetch('http://localhost:3300/sensor-data', {
+                method: 'GET',
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (Object.keys(data).length === 0) {
+                    sensorDataDiv.innerHTML = `<p>No sensor data available</p>`;
+                } else {
+                    displaySensorData(data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                sensorDataDiv.innerHTML = 'Error fetching sensor data';
+            });
+        }
+
+        // Function to display sensor data
+        function displaySensorData(data) {
+            sensorDataDiv.innerHTML = `
+                <div class="data-item">
+                    <span class="data-label">Temperature:</span> ${data.temperature} °C
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Humidity:</span> ${data.humidity} %
+                </div>
+                <div class="last-updated">
+                    Last Updated: ${new Date().toLocaleTimeString()}
+                </div>
+            `;
+        }
+
+        // Fetch sensor data immediately and set up an interval to fetch it every 5 seconds
+        fetchSensorData();  // Fetch data immediately when the page loads
+        setInterval(fetchSensorData, 5000);  // Continue fetching data every 5 seconds
+    </script>
+
+</body>
+</html>
+
